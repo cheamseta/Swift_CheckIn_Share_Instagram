@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @IBOutlet var logoImageView: UIImageView!
     
@@ -30,12 +30,34 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
+    @IBAction func showCameraAction(_ sender: Any) {
+        if UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.camera) {
+            let imgPicker = UIImagePickerController();
+            imgPicker.delegate = (self as UIImagePickerControllerDelegate & UINavigationControllerDelegate)
+            imgPicker.sourceType = .camera;
+            imgPicker.allowsEditing = true;
+            self.present(imgPicker, animated: true, completion: nil);
+        }else {
+            let imgPicker = UIImagePickerController();
+            imgPicker.delegate = (self as UIImagePickerControllerDelegate & UINavigationControllerDelegate)
+            imgPicker.sourceType = .photoLibrary;
+            imgPicker.allowsEditing = true;
+            self.present(imgPicker, animated: true, completion: nil);
+        }
+    }
+    
     @IBAction func showMapSaveController(_ sender: UIButton) {
         
         let mapViewController : MapSaveViewController = MapSaveViewController();
         mapViewController.profileImage = self.logoImageView.image;
         
         self.present(mapViewController, animated: true) {}
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        let img = info[UIImagePickerControllerOriginalImage] as! UIImage;
+        self.logoImageView.image = img;
+        dismiss(animated: true, completion: nil)
     }
     
 }

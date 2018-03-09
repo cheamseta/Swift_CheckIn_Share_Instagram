@@ -24,8 +24,18 @@
 	<string>LaunchScreen</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We would like to ask for gallery permission.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We would like to ask for location permission.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We would like to ask for gallery permission.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We would like to ask for location permission.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>asdfasd</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>instagram</string>
+	</array>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

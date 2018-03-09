@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import CoreLocation
 
-class MapSaveViewController: ViewController {
+class MapSaveViewController: ViewController, CLLocationManagerDelegate, UIDocumentInteractionControllerDelegate {
     
     public var profileImage : UIImage!
     
@@ -16,10 +17,21 @@ class MapSaveViewController: ViewController {
     @IBOutlet var profileImageView: UIImageView!
     @IBOutlet var mapImageView: UIImageView!
     
-    let googleStaticMapUrl : String = "https://maps.googleapis.com/maps/api/staticmap?center=Brooklyn+Bridge,New+York,NY&zoom=16&size=600x600&maptype=roadmap&markers=color:blue%7Clabel:S%7C40.702147,-74.015794&markers=color:green%7Clabel:G%7C40.711614,-74.012318&scale=2&markers=color:red%7Clabel:C%7C40.718217,-73.998284&key=AIzaSyDo1lKPO63zmTxQ03_TseIhk6kMYFtlACs"
+     var locationManager:CLLocationManager!
+    
+    var yourImage: UIImage?
+    var documentController: UIDocumentInteractionController!
+    
+    
+    var googleStaticMapUrl : String = "";
     
     override func viewDidLoad() {
         self.initView();
+      
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+          self.getCurrentLocation();
     }
     
     func initView () {
@@ -33,6 +45,30 @@ class MapSaveViewController: ViewController {
         
     }
     
+    @IBAction func reloadLocation(_ sender: Any) {
+          self.getCurrentLocation();
+    }
+    
+    func getCurrentLocation() {
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
+        
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.startUpdatingLocation()
+        }
+    }
+    
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let locValue: CLLocationCoordinate2D = manager.location?.coordinate else { return }
+        print("locations = \(locValue.latitude) \(locValue.longitude)");
+        
+        self.googleStaticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=\(locValue.latitude),\(locValue.longitude)&zoom=18&size=600x600&maptype=roadmap&key=YOURKEY"
+        self.initView();
+    }
+    
     func saveImg () -> UIImage {
         let render = UIGraphicsImageRenderer(size: self.renderView.bounds.size);
         let img = render.image { (context) in
@@ -42,11 +78,49 @@ class MapSaveViewController: ViewController {
         return img;
     }
     
-    @IBAction func shareToInstagram(_ sender: Any) {
-        let img = self.saveImg();
-        UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil);
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error)
+    {
+        print("Error \(error)")
     }
     
+    @IBAction func shareToInstagram(_ sender: Any) {
+        self.yourImage = self.saveImg();
+        self.shareToInstagram();
+//        UIImageWriteToSavedPhotosAlbum(self.yourImage!, nil, nil, nil);
+    }
     
+    func shareToInstagram() {
+        let instagramURL = NSURL(string: "instagram://app")
+        
+        if (UIApplication.shared.canOpenURL(instagramURL! as URL)) {
+            
+            if let imageData = UIImageJPEGRepresentation(yourImage!, 100) {
+                let filename = getDocumentsDirectory().appendingPathComponent("instagram.igo")
+    
+                try? imageData.write(to: filename)
+    
+                let captionString = "caption"
+                
+                self.documentController = UIDocumentInteractionController(url: filename as URL)
+                
+                self.documentController.delegate = self
+                
+                self.documentController.uti = "com.instagram.exlusivegram"
+                
+                self.documentController.annotation = NSDictionary(object: captionString, forKey: "InstagramCaption" as NSCopying)
+                self.documentController.presentOpenInMenu(from: self.view.frame, in: self.view, animated: true)
+                
+                
+            }
+            
+        } else {
+            print(" Instagram isn't installed ")
+        }
+    }
+    
+    func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
     
 }
